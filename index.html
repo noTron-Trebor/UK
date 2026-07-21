@@ -22,17 +22,28 @@
     position: relative;
   }
 
+   /* Invisible wrapper that perfectly matches your map's size */
+  #map-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    aspect-ratio: 1.5;               /* IMPORTANT: 1.5 matches map aspect ratio (Width / Height) */
+    z-index: 10;
+    pointer-events: none; /* Lets clicks pass through to the carousel below */
+  }
+
   /* ---------- Date list on the left wall ---------- */
   .dates {
     position: absolute;
-    left: 4vw;                        /* Indents proportionally with screen width */
-    top: 22vw;                        /* Adjust these two numbers to perfectly */
-    bottom: 22vw;                     /* fit the vertical space on your map */
+    left: 4%;                        /* Indents proportionally */
+    top: 30%;                        /* Adjust these percentages to perfectly */
+    bottom: 30%;                     /* fit the vertical space of the map */
     display: flex;
     flex-direction: column;
     justify-content: space-between;   
-    z-index: 10;
     list-style: none;
+    pointer-events: auto;            /* Re-enables clicking on the dates */
   }
   .dates li { line-height: 1; }
 
@@ -197,7 +208,9 @@
 </head>
 <body>
 
-  <ul class="dates" id="dates"></ul>
+  <div id="map-overlay">
+    <ul class="dates" id="dates"></ul>
+  </div>
 
   <div class="carousel-wrap">
     <div class="carousel-stage" id="stage">
