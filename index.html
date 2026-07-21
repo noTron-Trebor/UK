@@ -36,9 +36,9 @@
   /* ---------- Date list on the left wall ---------- */
   .dates {
     position: absolute;
-    left: 5%;                        /* Indents proportionally */
-    top: 32%;                        /* Adjust these percentages to perfectly */
-    bottom: 30%;                     /* fit the vertical space of the map */
+    left: 5.5%;                        /* Indents proportionally */
+    top: 32%;                        /* This adjusts the top of the dates list, lower = higher */
+    bottom: 29%;                     /* This adjusts the bottom of the dates list, lower = higher */
     display: flex;
     flex-direction: column;
     justify-content: space-between;   
@@ -50,7 +50,7 @@
   .dates a {
     color: #1a1a1a;                    
     text-decoration: none;
-    font-size: clamp(10px, 1.4vw, 18px); /* Scales with the map width between 11 - 18px */
+    font-size: clamp(9px, 1.2vw, 18px); /* Scales with the map width between 11 - 18px (?.?vw was 1.4) */
     letter-spacing: 0.03em;
     opacity: 0.7;
     cursor: pointer;
