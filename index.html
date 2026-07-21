@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Travel Photos</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    /* 100% auto ensures it fits left-to-right, then shrinks proportionally */
+    background: url('bg.png') no-repeat top center fixed;
+    background-size: 100% auto;
+    position: relative;
+  }
+
+  /* ---------- Date list on the left wall ---------- */
+  .dates {
+    position: absolute;
+    left: 60px;                       /* Indented more from the edge */
+    top: 25%;                         /* Expanded slightly to fit larger text */
+    bottom: 25%;                      
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;   
+    z-index: 10;
+    list-style: none;
+  }
+  .dates li { line-height: 1; }
+
+  .dates a {
+    color: #1a1a1a;                    
+    text-decoration: none;
+    font-size: 20px;                  /* Much larger text */
+    letter-spacing: 0.03em;
+    opacity: 0.7;
+    cursor: pointer;
+    font-weight: 500;
+    display: inline-block;
+    position: relative;
+    padding-left: 0;
+    transition: opacity .25s ease, transform .25s ease, padding .25s ease;
+    /* Soft white halo to make black text pop on the map */
+    text-shadow: 0 0 6px rgba(255, 245, 220, 0.9), 0 1px 3px rgba(255, 245, 220, 0.8);
+  }
+  .dates a:hover { opacity: 0.95; transform: translateX(3px); }
+  .dates a.active {
+    opacity: 1;
+    font-weight: 600;
+    padding-left: 18px;
+  }
+  .dates a.active::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 50%;
+    transform: translateY(-50%);
+    width: 12px; height: 2px;
+    background: #000;
+  }
+
+  /* ---------- Carousel ---------- */
+  .carousel-wrap {
+    position: absolute;
+    top: 48%;                          /* Shifted slightly to account for larger size */
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 65%;                        /* 50% larger */
+    max-width: 1100px;
+    min-width: 300px;
+    z-index: 5;
+  }
+  .carousel-stage {
+    position: relative;
+    width: 100%;
+    height: 65vh;                      /* Taller to fit larger landscapes */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .carousel-stage img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: none;
+    border: none;
+    background: transparent;
+  }
+  .carousel-stage img.active {
+    display: block;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);   /* Slightly larger shadow for bigger photos */
+    animation: fadeIn .4s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.45);
+    color: #fff;
+    border: none;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 22px;
+    line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0;
+    transition: opacity .3s ease, background .2s ease;
+    z-index: 6;
+    padding: 0;
+  }
+  .carousel-wrap:hover .nav-btn:not(:disabled) { opacity: 1; }
+  .nav-btn:hover { background: rgba(0, 0, 0, 0.8); }
+  .nav-btn.prev { left: -55px; }
+  .nav-btn.next { right: -55px; }
+  .nav-btn:disabled { cursor: default; }
+
+  /* ---------- Caption (floating black text, no box) ---------- */
+  .caption {
+    text-align: center;
+    color: #000;                       
+    font-size: 18px;                   /* Larger text */
+    line-height: 1.5;
+    margin: 6px auto 0;                /* Pulled much closer to the photo */
+    max-width: 85%;
+    min-height: 1.5em;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    /* Soft halo effect to pop over the map without a box */
+    text-shadow: 0 0 8px rgba(255, 245, 220, 0.95), 0 1px 4px rgba(255, 245, 220, 0.9);
+    transition: opacity .3s;
+  }
+  .caption.empty { opacity: 0; }
+
+  .counter {
+    text-align: center;
+    color: #000;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    margin-top: 8px;
+    opacity: 0;
+    text-transform: uppercase;
+    transition: opacity .3s;
+    text-shadow: 0 0 4px rgba(255, 245, 220, 0.9);
+  }
+  .counter.show { opacity: 0.5; }
+
+  /* ---------- Friendly popup ---------- */
+  .popup {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0.95);
+    background: rgba(20, 20, 20, 0.92);
+    color: #fff;
+    padding: 22px 38px;
+    font-size: 14px;
+    letter-spacing: 0.05em;
+    z-index: 100;
+    opacity: 0;
+    transition: opacity .3s ease, transform .3s ease;
+    pointer-events: none;
+    font-weight: 300;
+  }
+  .popup.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  /* ---------- Rotate warning for vertical phones ---------- */
+  .rotate-warning {
+    display: none;
+    position: fixed; inset: 0;
+    background: #1a1a1a;
+    color: #fff;
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 30px;
+    font-size: 14px;
+    letter-spacing: 0.05em;
+  }
+  @media (max-width: 600px) and (orientation: portrait) {
+    .rotate-warning { display: flex; }
+  }
+</style>
+</head>
+<body>
+
+  <ul class="dates" id="dates"></ul>
+
+  <div class="carousel-wrap">
+    <div class="carousel-stage" id="stage">
+      <button class="nav-btn prev" id="prev" aria-label="Previous">‹</button>
+      <button class="nav-btn next" id="next" aria-label="Next">›</button>
+    </div>
+    <div class="caption empty" id="caption"></div>
+    <div class="counter" id="counter"></div>
+  </div>
+
+  <div class="popup" id="popup"></div>
+  <div class="rotate-warning">Please rotate your device to landscape view.</div>
+
+<script>
+  // ----- Build date list: July 31 → August 25 -----
+  const dates = [];
+  dates.push({ month: 7, day: 31, label: "July 31" });
+  for (let d = 1; d <= 25; d++) {
+    dates.push({ month: 8, day: d, label: "August " + d });
+  }
+
+  const datesEl = document.getElementById('dates');
+  dates.forEach(date => {
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.textContent = date.label;
+    a.href = "#";
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      loadDate(date, a);
+    });
+    li.appendChild(a);
+    datesEl.appendChild(li);
+  });
+
+  // ----- State -----
+  let currentPhotos = [];
+  let currentIndex = 0;
+
+  const stage     = document.getElementById('stage');
+  const captionEl = document.getElementById('caption');
+  const counterEl = document.getElementById('counter');
+  const prevBtn   = document.getElementById('prev');
+  const nextBtn   = document.getElementById('next');
+
+  // ----- Load a date's photos -----
+  async function loadDate(date, linkEl) {
+    const folder = `photos/${date.month}-${date.day}`;
+    const txtUrl = `${folder}/${date.month}-${date.day}.txt`;
+
+    document.querySelectorAll('.dates a').forEach(a => a.classList.remove('active'));
+
+    try {
+      const res = await fetch(txtUrl);
+      if (!res.ok) throw new Error('not found');
+      const text = await res.text();
+      const photos = parseTextFile(text, folder);
+
+      if (photos.length === 0) {
+        showPopup("Please return soon for more photos…");
+        return;
+      }
+
+      currentPhotos = photos;
+      currentIndex = 0;
+      linkEl.classList.add('active');
+      renderCarousel();
+    } catch (e) {
+      showPopup("Please return soon for more photos…");
+    }
+  }
+
+  // ----- Parse the .txt file -----
+  // Format per block:
+  //   filename.jpg
+  //   Caption text (may span multiple lines).
+  // Blocks separated by a blank line.
+  function parseTextFile(text, folder) {
+    const normalized = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    const blocks = normalized.trim().split(/\n\s*\n/);
+    const photos = [];
+
+    blocks.forEach(block => {
+      const lines = block.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      if (lines.length >= 2) {
+        const filename = lines[0];
+        if (/\.(jpg|jpeg|png|gif|webp)$/i.test(filename)) {
+          const caption = lines.slice(1).join(' ');
+          photos.push({ url: `${folder}/${filename}`, caption });
+        }
+      }
+    });
+    return photos;
+  }
+
+  // ----- Render carousel -----
+  function renderCarousel() {
+    stage.querySelectorAll('img').forEach(img => img.remove());
+
+    currentPhotos.forEach((photo, i) => {
+      const img = document.createElement('img');
+      img.alt = photo.caption || '';
+      if (i === currentIndex) img.classList.add('active');
+      img.addEventListener('error', () => { img.style.display = 'none'; });
+      img.src = photo.url;
+      stage.appendChild(img);
+    });
+
+    updateCaption();
+    updateCounter();
+    updateNavButtons();
+  }
+
+  function updateCaption() {
+    if (currentPhotos.length === 0) {
+      captionEl.textContent = '';
+      captionEl.classList.add('empty');
+      return;
+    }
+    captionEl.textContent = currentPhotos[currentIndex].caption;
+    captionEl.classList.remove('empty');
+  }
+
+  function updateCounter() {
+    if (currentPhotos.length === 0) {
+      counterEl.textContent = '';
+      counterEl.classList.remove('show');
+      return;
+    }
+    counterEl.textContent = `${currentIndex + 1} / ${currentPhotos.length}`;
+    counterEl.classList.add('show');
+  }
+
+  function updateNavButtons() {
+    prevBtn.disabled = currentPhotos.length <= 1;
+    nextBtn.disabled = currentPhotos.length <= 1;
+  }
+
+  function showImage(index) {
+    stage.querySelectorAll('img').forEach((img, i) => {
+      img.classList.toggle('active', i === index);
+    });
+    updateCaption();
+    updateCounter();
+  }
+
+  // ----- Navigation -----
+  prevBtn.addEventListener('click', () => {
+    if (currentPhotos.length === 0) return;
+    currentIndex = (currentIndex - 1 + currentPhotos.length) % currentPhotos.length;
+    showImage(currentIndex);
+  });
+  nextBtn.addEventListener('click', () => {
+    if (currentPhotos.length === 0) return;
+    currentIndex = (currentIndex + 1) % currentPhotos.length;
+    showImage(currentIndex);
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (currentPhotos.length === 0) return;
+    if (e.key === 'ArrowLeft') {
+      currentIndex = (currentIndex - 1 + currentPhotos.length) % currentPhotos.length;
+      showImage(currentIndex);
+    } else if (e.key === 'ArrowRight') {
+      currentIndex = (currentIndex + 1) % currentPhotos.length;
+      showImage(currentIndex);
+    }
+  });
+
+  // ----- Popup -----
+  let popupTimer;
+  function showPopup(message) {
+    const popup = document.getElementById('popup');
+    popup.textContent = message;
+    popup.classList.add('show');
+    clearTimeout(popupTimer);
+    popupTimer = setTimeout(() => popup.classList.remove('show'), 2400);
+  }
+</script>
+
+</body>
+</html>
