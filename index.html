@@ -25,9 +25,9 @@
   /* ---------- Date list on the left wall ---------- */
   .dates {
     position: absolute;
-    left: 60px;                       /* Indented more from the edge */
-    top: 25%;                         /* Expanded slightly to fit larger text */
-    bottom: 25%;                      
+    left: 4vw;                        /* Indents proportionally with screen width */
+    top: 22vw;                        /* Adjust these two numbers to perfectly */
+    bottom: 22vw;                     /* fit the vertical space on your map */
     display: flex;
     flex-direction: column;
     justify-content: space-between;   
@@ -39,7 +39,7 @@
   .dates a {
     color: #1a1a1a;                    
     text-decoration: none;
-    font-size: 20px;                  /* Much larger text */
+    font-size: clamp(11px, 1.4vw, 18px); /* Scales with the map width between 11 - 18px */
     letter-spacing: 0.03em;
     opacity: 0.7;
     cursor: pointer;
@@ -55,14 +55,15 @@
   .dates a.active {
     opacity: 1;
     font-weight: 600;
-    padding-left: 18px;
+    padding-left: 1.2vw;             /* to make dash mark next to the active date scale proportionally */
   }
   .dates a.active::before {
     content: "";
     position: absolute;
     left: 0; top: 50%;
     transform: translateY(-50%);
-    width: 12px; height: 2px;
+    width: 0.8vw; height: 1.5px;       /* to make dash mark next to the active date scale proportionally */
+    max-width: 10px;
     background: #000;
   }
 
