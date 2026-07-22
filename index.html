@@ -113,6 +113,7 @@
     display: block;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);   /* Slightly larger shadow for bigger photos */
     animation: fadeIn .4s ease;
+    cursor: zoom-in;                             /* Shows user they can click image */
   }
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
@@ -170,6 +171,29 @@
   }
   .counter.show { opacity: 0.5; }
 
+   /* ---------- Fullscreen Lightbox ---------- */
+  #lightbox {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(10, 5, 0, 0.96);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    cursor: zoom-out;
+  }
+  #lightbox.active {
+    display: flex;
+  }
+  #lightbox img {
+    max-width: 95vw;
+    max-height: 95vh;
+    object-fit: contain;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.8);
+    animation: fadeIn .3s ease;
+  }
+
   /* ---------- Friendly popup ---------- */
   .popup {
     position: fixed;
@@ -226,8 +250,9 @@
   </div>
 
   <div class="popup" id="popup"></div>
-  <div class="rotate-warning">Please rotate your device to landscape view.</div>
-
+  <div class="rotate-warning">Created for larger screens. Please rotate your device to landscape view.</div>
+  <div id="lightbox"><img src="" id="lightbox-img" alt="Fullscreen view"></div>
+ 
 <script>
   // ----- Build date list: July 31 → August 25 -----
   const dates = [];
@@ -320,6 +345,10 @@
       if (i === currentIndex) img.classList.add('active');
       img.addEventListener('error', () => { img.style.display = 'none'; });
       img.src = photo.url;
+      
+      // NEW: Click image to open fullscreen lightbox
+      img.addEventListener('click', () => openLightbox(photo.url));
+      
       stage.appendChild(img);
     });
 
@@ -374,6 +403,11 @@
   });
 
   document.addEventListener('keydown', (e) => {
+    // NEW: Close lightbox with Escape key
+    if (e.key === 'Escape' && lightbox.classList.contains('active')) {
+      closeLightbox();
+      return;
+    }
     if (currentPhotos.length === 0) return;
     if (e.key === 'ArrowLeft') {
       currentIndex = (currentIndex - 1 + currentPhotos.length) % currentPhotos.length;
@@ -384,6 +418,23 @@
     }
   });
 
+   // ----- Fullscreen Lightbox -----
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = document.getElementById('lightbox-img');
+
+  function openLightbox(src) {
+    lightboxImg.src = src;
+    lightbox.classList.add('active');
+  }
+
+  function closeLightbox() {
+    lightbox.classList.remove('active');
+    lightboxImg.src = ''; // Clears the image so it doesn't flash next time
+  }
+
+  // Click anywhere on the dark background to close it
+  lightbox.addEventListener('click', closeLightbox);
+ 
   // ----- Popup -----
   let popupTimer;
   function showPopup(message) {
