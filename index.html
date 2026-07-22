@@ -346,8 +346,8 @@
       img.addEventListener('error', () => { img.style.display = 'none'; });
       img.src = photo.url;
       
-      // NEW: Click image to open fullscreen lightbox
-      img.addEventListener('click', () => openLightbox(photo.url));
+      // NEW: Click image to open fullscreen lightbox, passing the index number
+      img.addEventListener('click', () => openLightbox(i));
       
       stage.appendChild(img);
     });
@@ -383,11 +383,17 @@
   }
 
   function showImage(index) {
+    currentIndex = index;
     stage.querySelectorAll('img').forEach((img, i) => {
       img.classList.toggle('active', i === index);
     });
     updateCaption();
     updateCounter();
+    
+    // NEW: If the lightbox is open, update the fullscreen image too!
+    if (lightbox.classList.contains('active')) {
+      updateLightboxImage();
+    }
   }
 
   // ----- Navigation -----
@@ -418,22 +424,70 @@
     }
   });
 
-   // ----- Fullscreen Lightbox -----
+  // ----- Fullscreen Lightbox & Swipe Gestures -----
   const lightbox = document.getElementById('lightbox');
   const lightboxImg = document.getElementById('lightbox-img');
 
-  function openLightbox(src) {
-    lightboxImg.src = src;
+  function openLightbox(index) {
+    currentIndex = index; // Store current photo position
+    updateLightboxImage();
     lightbox.classList.add('active');
   }
 
   function closeLightbox() {
     lightbox.classList.remove('active');
-    lightboxImg.src = ''; // Clears the image so it doesn't flash next time
+    lightboxImg.src = ''; 
   }
 
-  // Click anywhere on the dark background to close it
-  lightbox.addEventListener('click', closeLightbox);
+  function updateLightboxImage() {
+    if (currentPhotos.length > 0) {
+      lightboxImg.src = currentPhotos[currentIndex].url;
+    }
+  }
+
+  // Click the dark background to close (but not clicking the image itself)
+  lightbox.addEventListener('click', (e) => {
+    if (e.target === lightbox) closeLightbox();
+  });
+
+  // ----- Swipe Logic for Phones -----
+  let touchStartX = 0;
+  let touchEndX = 0;
+
+  function handleSwipe() {
+    if (currentPhotos.length === 0) return;
+    const threshold = 50; // Minimum distance finger must travel to count as a swipe
+
+    if (touchEndX < touchStartX - threshold) {
+      // Swiped Left -> Next Photo
+      currentIndex = (currentIndex + 1) % currentPhotos.length;
+      showImage(currentIndex);
+    } else if (touchEndX > touchStartX + threshold) {
+      // Swiped Right -> Previous Photo
+      currentIndex = (currentIndex - 1 + currentPhotos.length) % currentPhotos.length;
+      showImage(currentIndex);
+    }
+  }
+
+  // Add swipe to the Fullscreen Lightbox
+  lightbox.addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+
+  lightbox.addEventListener('touchend', (e) => {
+    touchEndX = e.changedTouches[0].screenX;
+    handleSwipe();
+  }, { passive: true });
+
+  // Add swipe to the Main Carousel too!
+  stage.addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+
+  stage.addEventListener('touchend', (e) => {
+    touchEndX = e.changedTouches[0].screenX;
+    handleSwipe();
+  }, { passive: true });
  
   // ----- Popup -----
   let popupTimer;
