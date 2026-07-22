@@ -81,13 +81,14 @@
   /* ---------- Carousel ---------- */
   .carousel-wrap {
     position: absolute;
-    top: 48%;                          /* Shifted slightly to account for larger size */
-    left: 50%;
+    top: 50%;                          /* Vertically centers it on the map */
+    left: 55%;                         /* Pushes it slightly right to clear the dates */
     transform: translate(-50%, -50%);
-    width: 65%;                        /* 50% larger */
+    width: 75%;                        /* Increased size */
     max-width: 1100px;
     min-width: 300px;
     z-index: 5;
+    pointer-events: auto;              /* Re-enables clicking on the carousel */
   }
   .carousel-stage {
     position: relative;
@@ -210,15 +211,15 @@
 
   <div id="map-overlay">
     <ul class="dates" id="dates"></ul>
-  </div>
 
-  <div class="carousel-wrap">
-    <div class="carousel-stage" id="stage">
-      <button class="nav-btn prev" id="prev" aria-label="Previous">‹</button>
-      <button class="nav-btn next" id="next" aria-label="Next">›</button>
+    <div class="carousel-wrap">
+      <div class="carousel-stage" id="stage">
+        <button class="nav-btn prev" id="prev" aria-label="Previous">‹</button>
+        <button class="nav-btn next" id="next" aria-label="Next">›</button>
+      </div>
+      <div class="caption empty" id="caption"></div>
+      <div class="counter" id="counter"></div>
     </div>
-    <div class="caption empty" id="caption"></div>
-    <div class="counter" id="counter"></div>
   </div>
 
   <div class="popup" id="popup"></div>
