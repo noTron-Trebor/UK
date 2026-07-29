@@ -84,19 +84,23 @@
   /* ---------- Carousel ---------- */
   .carousel-wrap {
     position: absolute;
-    top: 60%;                          /* Control the vertical placement over BG */
+    top: 20vh;                         /* Distance from top of the real browser window — tune to taste */
+    bottom: 4vh;                       /* Distance from bottom — guarantees room for photo + caption */
     left: 55%;                         /* Pushes it slightly right to clear the dates */
-    transform: translate(-50%, -50%);
-    width: 75%;                        /* Increased size */
+    transform: translateX(-50%);       /* Horizontal centering only now */
+    width: 75%;
     max-width: 1300px;
     min-width: 300px;
     z-index: 5;
-    pointer-events: auto;              /* Re-enables clicking on the carousel */
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
   }
   .carousel-stage {
     position: relative;
     width: 100%;
-    height: 65vh;                      /* Taller to fit larger landscapes */
+    flex: 1 1 auto;                    /* Fills whatever space is left between top and bottom */
+    min-height: 0;                     /* Lets the photo shrink to fit instead of overflowing */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -111,9 +115,12 @@
   }
   .carousel-stage img.active {
     display: block;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);   /* Slightly larger shadow for bigger photos */
+    border: 4px solid #a9791f;                                     /* thin dark-gold frame */
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45), 0 8px 24px rgba(0, 0, 0, 0.6);
+    /* the 1px inset shadow is a dark hairline just outside the gold — keeps it visible
+       even where the map itself is gold/yellow; the second shadow keeps the original depth */
     animation: fadeIn .4s ease;
-    cursor: zoom-in;                             /* Shows user they can click image */
+    cursor: zoom-in;
   }
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
@@ -155,6 +162,7 @@
     /* Soft halo effect to pop over the map without a box */
     text-shadow: 0 0 8px rgba(255, 245, 220, 0.95), 0 1px 4px rgba(255, 245, 220, 0.9);
     transition: opacity .3s;
+    flex-shrink: 0;
   }
   .caption.empty { opacity: 0; }
 
@@ -168,6 +176,7 @@
     text-transform: uppercase;
     transition: opacity .3s;
     text-shadow: 0 0 4px rgba(255, 245, 220, 0.9);
+    flex-shrink: 0;
   }
   .counter.show { opacity: 0.5; }
 
@@ -215,6 +224,26 @@
     transform: translate(-50%, -50%) scale(1);
   }
 
+   /* ---------- 'X' in the top right to close browser ---------- */
+  .close-btn {
+    position: fixed;
+    top: 18px;
+    right: 22px;
+    z-index: 20;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: #1a1a1a;
+    font-size: clamp(20px, 3vw, 32px);
+    font-weight: 600;
+    line-height: 1;
+    text-shadow: 0 0 6px rgba(255, 245, 220, 0.9), 0 1px 3px rgba(255, 245, 220, 0.8);
+    opacity: 0.75;
+    transition: opacity .2s ease, transform .2s ease;
+  }
+  .close-btn:hover { opacity: 1; transform: scale(1.08); }
+
   /* ---------- Rotate warning for vertical phones ---------- */
   .rotate-warning {
     display: none;
@@ -235,7 +264,9 @@
 </style>
 </head>
 <body>
-
+ 
+  <button class="close-btn" id="closeBtn" aria-label="Close">&times;</button>
+ 
   <div id="map-overlay">
     <ul class="dates" id="dates"></ul>
 
@@ -498,6 +529,13 @@
     clearTimeout(popupTimer);
     popupTimer = setTimeout(() => popup.classList.remove('show'), 2400);
   }
+
+   // ----- If the 'X' fails to close Browser -----
+  document.getElementById('closeBtn').addEventListener('click', () => {
+    window.close();
+    setTimeout(() => showPopup("You can close this tab now — thanks for looking!"), 150);
+  });
+ 
 </script>
 
 </body>
