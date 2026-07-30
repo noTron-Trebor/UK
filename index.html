@@ -95,12 +95,14 @@
     pointer-events: auto;
     display: flex;
     flex-direction: column;
+    justify-content: center;           /* centers the image+caption group within the top/bottom band */
   }
   .carousel-stage {
     position: relative;
     width: 100%;
-    flex: 1 1 auto;                    /* Fills whatever space is left between top and bottom */
+    flex: 0 1 auto;                    /* don't force-grow — only take what the photo needs */
     min-height: 0;                     /* Lets the photo shrink to fit instead of overflowing */
+    max-height: calc(100% - 3em);      /* still capped, so a portrait photo can't overflow the band */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -151,18 +153,22 @@
   /* ---------- Caption (floating black text, no box) ---------- */
   .caption {
     text-align: center;
-    color: #000;                       
-    font-size: 18px;                   /* Larger text */
+    color: #2a1c0a;                            /* warm dark ink — reads cleanly on the beige pill */
+    font-size: 18px;
     line-height: 1.5;
-    margin: 6px auto 0;                /* Pulled much closer to the photo */
+    margin: 10px auto 0;
+    width: fit-content;                         /* box hugs the text instead of spanning full width */
     max-width: 85%;
     min-height: 1.5em;
     font-weight: 500;
     letter-spacing: 0.01em;
-    /* Soft halo effect to pop over the map without a box */
-    text-shadow: 0 0 8px rgba(255, 245, 220, 0.95), 0 1px 4px rgba(255, 245, 220, 0.9);
-    transition: opacity .3s;
+    padding: 6px 18px;                          /* breathing room inside the pill */
+    border-radius: 14px;                        /* rounded pill shape */
+    background: rgba(245, 230, 195, 0.55);      /* translucent aged-paper beige */
+    border: 1px solid rgba(139, 105, 20, 0.3);  /* faint gold hairline, echoes the photo frame */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25); /* soft lift, separates the pill from the map too */
     flex-shrink: 0;
+    transition: opacity .3s;
   }
   .caption.empty { opacity: 0; }
 
