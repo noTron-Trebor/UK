@@ -172,19 +172,15 @@
   }
   .caption.empty { opacity: 0; }
 
-  .counter {
-    text-align: center;
-    color: #000;
-    font-size: 11px;
-    letter-spacing: 0.25em;
-    margin-top: 8px;
-    opacity: 0;
-    text-transform: uppercase;
-    transition: opacity .3s;
-    text-shadow: 0 0 4px rgba(255, 245, 220, 0.9);
-    flex-shrink: 0;
+ .caption .count {
+    display: inline-block;
+    margin-left: 0.6em;
+    font-size: 0.7em;
+    letter-spacing: 0.15em;
+    color: #6b5427;      /* muted gold-brown — reads as secondary, not competing with the caption */
+    opacity: 0.8;
+    vertical-align: middle;
   }
-  .counter.show { opacity: 0.5; }
 
    /* ---------- Fullscreen Lightbox ---------- */
   #lightbox {
@@ -282,7 +278,6 @@
         <button class="nav-btn next" id="next" aria-label="Next">›</button>
       </div>
       <div class="caption empty" id="caption"></div>
-      <div class="counter" id="counter"></div>
     </div>
   </div>
 
@@ -318,7 +313,6 @@
 
   const stage     = document.getElementById('stage');
   const captionEl = document.getElementById('caption');
-  const counterEl = document.getElementById('counter');
   const prevBtn   = document.getElementById('prev');
   const nextBtn   = document.getElementById('next');
 
@@ -390,28 +384,24 @@
     });
 
     updateCaption();
-    updateCounter();
     updateNavButtons();
   }
 
   function updateCaption() {
+    captionEl.innerHTML = '';
     if (currentPhotos.length === 0) {
-      captionEl.textContent = '';
       captionEl.classList.add('empty');
       return;
     }
-    captionEl.textContent = currentPhotos[currentIndex].caption;
-    captionEl.classList.remove('empty');
-  }
+    const photo = currentPhotos[currentIndex];
+    captionEl.appendChild(document.createTextNode(photo.caption));
 
-  function updateCounter() {
-    if (currentPhotos.length === 0) {
-      counterEl.textContent = '';
-      counterEl.classList.remove('show');
-      return;
-    }
-    counterEl.textContent = `${currentIndex + 1} / ${currentPhotos.length}`;
-    counterEl.classList.add('show');
+    const count = document.createElement('span');
+    count.className = 'count';
+    count.textContent = `· ${currentIndex + 1} / ${currentPhotos.length}`;
+    captionEl.appendChild(count);
+
+    captionEl.classList.remove('empty');
   }
 
   function updateNavButtons() {
@@ -425,7 +415,6 @@
       img.classList.toggle('active', i === index);
     });
     updateCaption();
-    updateCounter();
     
     // NEW: If the lightbox is open, update the fullscreen image too!
     if (lightbox.classList.contains('active')) {
